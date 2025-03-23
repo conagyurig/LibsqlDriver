@@ -1,0 +1,273 @@
+package org.conagyurig;
+
+import org.conagyurig.protocol.response.*;
+
+import java.sql.*;
+import java.util.List;
+
+public class LibSqlStatement implements Statement {
+    private final LibSqlClient client;
+    private LibSqlResultSet resultSet;
+    private List<ResultItem> currentResults;
+    private Integer currentResultIndex;
+    private Integer updateCount;
+    private Integer last_insert_rowid;
+
+    public LibSqlStatement(LibSqlClient client) {
+        this.client = client;
+    }
+
+    @Override
+    public boolean execute(String sql) throws SQLException {
+        Response response = client.executeQuery(sql);
+        List<ResultItem> results = extractExecuteResults(response);
+        this.currentResults = results;
+        this.currentResultIndex = 0;
+
+        if (hasResultSet(results.getFirst())) {
+            this.resultSet = new LibSqlResultSet(results.getFirst().getResponse().getResult());
+            return true;
+        } else {
+            Result result = results.getFirst().getResponse().getResult();
+            this.updateCount = result.getAffected_row_count();
+            this.last_insert_rowid = Integer.parseInt(result.getLast_insert_rowid());
+            return false;
+        }
+    }
+
+    @Override
+    public ResultSet executeQuery(String sql) throws SQLException {
+        if (execute(sql)) {
+            return resultSet;
+        }
+        throw new SQLException("Query did not produce a result set");
+    }
+
+    @Override
+    public int executeUpdate(String sql) throws SQLException {
+        if(!execute(sql)) {
+            return updateCount;
+        }
+        throw new SQLException("Query returned a ResultSet");
+    }
+
+    private List<ResultItem> extractExecuteResults(Response response){
+        return response.getResults().stream().filter(resultItem -> resultItem.getResponse().getType().equals("execute")).toList();
+    }
+
+    private boolean hasResultSet(ResultItem resultItem) {
+        Result result = resultItem.getResponse().getResult();
+        List<Column> cols = result.getCols();
+        List<List<Cell>> rows = result.getRows();
+        if (cols == null || rows == null || cols.isEmpty() || rows.isEmpty()) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public void close() throws SQLException {
+
+    }
+
+    @Override
+    public int getMaxFieldSize() throws SQLException {
+        return 0;
+    }
+
+    @Override
+    public void setMaxFieldSize(int max) throws SQLException {
+
+    }
+
+    @Override
+    public int getMaxRows() throws SQLException {
+        return 0;
+    }
+
+    @Override
+    public void setMaxRows(int max) throws SQLException {
+
+    }
+
+    @Override
+    public void setEscapeProcessing(boolean enable) throws SQLException {
+
+    }
+
+    @Override
+    public int getQueryTimeout() throws SQLException {
+        return 0;
+    }
+
+    @Override
+    public void setQueryTimeout(int seconds) throws SQLException {
+
+    }
+
+    @Override
+    public void cancel() throws SQLException {
+
+    }
+
+    @Override
+    public SQLWarning getWarnings() throws SQLException {
+        return null;
+    }
+
+    @Override
+    public void clearWarnings() throws SQLException {
+
+    }
+
+    @Override
+    public void setCursorName(String name) throws SQLException {
+
+    }
+
+    @Override
+    public ResultSet getResultSet() throws SQLException {
+        return null;
+    }
+
+    @Override
+    public int getUpdateCount() throws SQLException {
+        return 0;
+    }
+
+    @Override
+    public boolean getMoreResults() throws SQLException {
+        return false;
+    }
+
+    @Override
+    public void setFetchDirection(int direction) throws SQLException {
+
+    }
+
+    @Override
+    public int getFetchDirection() throws SQLException {
+        return 0;
+    }
+
+    @Override
+    public void setFetchSize(int rows) throws SQLException {
+
+    }
+
+    @Override
+    public int getFetchSize() throws SQLException {
+        return 0;
+    }
+
+    @Override
+    public int getResultSetConcurrency() throws SQLException {
+        return 0;
+    }
+
+    @Override
+    public int getResultSetType() throws SQLException {
+        return 0;
+    }
+
+    @Override
+    public void addBatch(String sql) throws SQLException {
+
+    }
+
+    @Override
+    public void clearBatch() throws SQLException {
+
+    }
+
+    @Override
+    public int[] executeBatch() throws SQLException {
+        return new int[0];
+    }
+
+    @Override
+    public Connection getConnection() throws SQLException {
+        return null;
+    }
+
+    @Override
+    public boolean getMoreResults(int current) throws SQLException {
+        return false;
+    }
+
+    @Override
+    public ResultSet getGeneratedKeys() throws SQLException {
+        return new LibSqlResultSet(new Result());
+    }
+
+    @Override
+    public int executeUpdate(String sql, int autoGeneratedKeys) throws SQLException {
+        executeUpdate(sql);
+        return 0;
+    }
+
+    @Override
+    public int executeUpdate(String sql, int[] columnIndexes) throws SQLException {
+        return 0;
+    }
+
+    @Override
+    public int executeUpdate(String sql, String[] columnNames) throws SQLException {
+        return 0;
+    }
+
+    @Override
+    public boolean execute(String sql, int autoGeneratedKeys) throws SQLException {
+        return false;
+    }
+
+    @Override
+    public boolean execute(String sql, int[] columnIndexes) throws SQLException {
+        return false;
+    }
+
+    @Override
+    public boolean execute(String sql, String[] columnNames) throws SQLException {
+        return false;
+    }
+
+    @Override
+    public int getResultSetHoldability() throws SQLException {
+        return 0;
+    }
+
+    @Override
+    public boolean isClosed() throws SQLException {
+        return false;
+    }
+
+    @Override
+    public void setPoolable(boolean poolable) throws SQLException {
+
+    }
+
+    @Override
+    public boolean isPoolable() throws SQLException {
+        return false;
+    }
+
+    @Override
+    public void closeOnCompletion() throws SQLException {
+
+    }
+
+    @Override
+    public boolean isCloseOnCompletion() throws SQLException {
+        return false;
+    }
+
+    @Override
+    public <T> T unwrap(Class<T> iface) throws SQLException {
+        return null;
+    }
+
+    @Override
+    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+        return false;
+    }
+}
