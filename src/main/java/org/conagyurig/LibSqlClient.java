@@ -26,14 +26,16 @@ public class LibSqlClient {
     private final HttpClient client;
     private final ObjectMapper objectMapper;
     private final ObjectWriter objectWriter;
+    private final TransactionState transactionState;
 
-    public LibSqlClient(String url, String authToken) {
+    public LibSqlClient(String url, String authToken, TransactionState transactionState) {
         this.uri = URI.create("https://" + url + TURSO_PREFIX);
         this.authToken = authToken;
         this.clientExecutor = Executors.newVirtualThreadPerTaskExecutor();
         this.client = HttpClient.newBuilder()
                 .executor(this.clientExecutor)
                 .build();
+        this.transactionState = transactionState;
         this.objectMapper = new ObjectMapper();
         this.objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         this.objectWriter = objectMapper.writerWithDefaultPrettyPrinter();
@@ -56,9 +58,10 @@ public class LibSqlClient {
     }
 
     private Response sendRequest(Request request) {
-        RequestBatch requestBatch = new RequestBatch(request);
+        RequestBatch requestBatch = buildRequestBatch(request);
         try {
             String jsonPayload = objectWriter.writeValueAsString(requestBatch);
+            System.out.println(jsonPayload);
             HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                     .uri(uri)
                     .header("Content-Type", "application/json")
@@ -71,12 +74,15 @@ public class LibSqlClient {
 
             HttpRequest httpRequest = requestBuilder.build();
             HttpResponse<String> response = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() == 200) {
+            System.out.println(response.body());
+            if (response.statusCode() == 200 && response.body() != null) {
                 try {
-                    return objectMapper.readValue(response.body(), Response.class);
+                    Response mappedResponse = objectMapper.readValue(response.body(), Response.class);
+                    if (mappedResponse.getBaton() != null && transactionState.isInTransaction()) {
+                        transactionState.setBaton(mappedResponse.getBaton());
+                    }
+                    return mappedResponse;
                 } catch (JsonProcessingException e) {
-                    System.out.println(response.body());
                     throw new RuntimeException("Failed to parse response from LibSQL", e);
                 }
             } else {
@@ -85,6 +91,21 @@ public class LibSqlClient {
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private RequestBatch buildRequestBatch(Request request) {
+        RequestBatch requestBatch = new RequestBatch();
+        if (transactionState.isInTransaction() && transactionState.getBaton() == null) {
+            Request beginTransaction = new Request("execute", new Statement("BEGIN"));
+            requestBatch.addRequest(beginTransaction);
+        } else if(transactionState.isInTransaction() && transactionState.getBaton() != null) {
+            requestBatch.setBaton(transactionState.getBaton());
+        }
+        requestBatch.addRequest(request);
+        if (!transactionState.isInTransaction()) {
+            requestBatch.addRequest(new Request("close"));
+        }
+        return requestBatch;
     }
 
     public void close() {

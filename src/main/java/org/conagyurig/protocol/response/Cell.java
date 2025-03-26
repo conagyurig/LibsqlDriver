@@ -4,6 +4,13 @@ public class Cell {
     private String type;
     private String value;
 
+    public Cell(){}
+
+    public Cell(String type, String value) {
+        this.type = type;
+        this.value = value;
+    }
+
     public String getType() {
         return type;
     }

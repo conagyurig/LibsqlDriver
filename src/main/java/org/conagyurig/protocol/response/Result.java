@@ -11,7 +11,12 @@ public class Result {
     private Integer affected_row_count;
     private String last_insert_rowid;
 
+    public Result() {}
 
+    public Result(List<Column> cols, List<List<Cell>> rows) {
+        this.cols = cols;
+        this.rows = rows;
+    }
 
     public List<Column> getCols() {
         return cols;

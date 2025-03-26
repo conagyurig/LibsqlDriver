@@ -4,6 +4,13 @@ public class Column {
     private String name;
     private String decltype;
 
+    public Column() {}
+
+    public Column(String name, String decltype) {
+        this.name = name;
+        this.decltype = decltype;
+    }
+
     public String getName() {
         return name;
     }

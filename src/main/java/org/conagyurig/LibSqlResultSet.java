@@ -109,67 +109,77 @@ public class LibSqlResultSet implements ResultSet {
 
     @Override
     public byte getByte(int columnIndex) throws SQLException {
-        return 0;
+        Cell cell = getCell(columnIndex);
+        Byte value = extractValue(cell, Byte::parseByte, "byte");
+        return value != null ? value : 0;
     }
 
     @Override
     public short getShort(int columnIndex) throws SQLException {
-        return 0;
+        Cell cell = getCell(columnIndex);
+        Short value = extractValue(cell, Short::parseShort, "short");
+        return value != null ? value : 0;
     }
 
     @Override
     public long getLong(int columnIndex) throws SQLException {
-        return 0;
+        Cell cell = getCell(columnIndex);
+        Long value = extractValue(cell, Long::parseLong, "long");
+        return value != null ? value : 0;
     }
 
     @Override
     public float getFloat(int columnIndex) throws SQLException {
-        return 0;
+        Cell cell = getCell(columnIndex);
+        Float value = extractValue(cell, Float::parseFloat, "float");
+        return value != null ? value : 0.0f;
     }
 
     @Override
     public double getDouble(int columnIndex) throws SQLException {
-        return 0;
+        Cell cell = getCell(columnIndex);
+        Double value = extractValue(cell, Double::parseDouble, "double");
+        return value != null ? value : 0.0d;
     }
 
     @Override
     public BigDecimal getBigDecimal(int columnIndex, int scale) throws SQLException {
-        return null;
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public byte[] getBytes(int columnIndex) throws SQLException {
-        return new byte[0];
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public Date getDate(int columnIndex) throws SQLException {
-        return null;
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public Time getTime(int columnIndex) throws SQLException {
-        return null;
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public Timestamp getTimestamp(int columnIndex) throws SQLException {
-        return null;
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public InputStream getAsciiStream(int columnIndex) throws SQLException {
-        return null;
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public InputStream getUnicodeStream(int columnIndex) throws SQLException {
-        return null;
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public InputStream getBinaryStream(int columnIndex) throws SQLException {
-        return null;
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
@@ -187,12 +197,16 @@ public class LibSqlResultSet implements ResultSet {
 
     @Override
     public byte getByte(String columnLabel) throws SQLException {
-        return 0;
+        Cell cell = getCell(columnLabel);
+        Byte value = extractValue(cell, Byte::parseByte, "byte");
+        return value != null ? value : 0;
     }
 
     @Override
     public short getShort(String columnLabel) throws SQLException {
-        return 0;
+        Cell cell = getCell(columnLabel);
+        Short value = extractValue(cell, Short::parseShort, "short");
+        return value != null ? value : 0;
     }
 
     @Override
@@ -204,57 +218,63 @@ public class LibSqlResultSet implements ResultSet {
 
     @Override
     public long getLong(String columnLabel) throws SQLException {
-        return 0;
+        Cell cell = getCell(columnLabel);
+        Long value = extractValue(cell, Long::parseLong, "long");
+        return value != null ? value : 0;
     }
 
     @Override
     public float getFloat(String columnLabel) throws SQLException {
-        return 0;
+        Cell cell = getCell(columnLabel);
+        Float value = extractValue(cell, Float::parseFloat, "float");
+        return value != null ? value : 0.0f;
     }
 
     @Override
     public double getDouble(String columnLabel) throws SQLException {
-        return 0;
+        Cell cell = getCell(columnLabel);
+        Double value = extractValue(cell, Double::parseDouble, "double");
+        return value != null ? value : 0.0d;
     }
 
     @Override
     public BigDecimal getBigDecimal(String columnLabel, int scale) throws SQLException {
-        return null;
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public byte[] getBytes(String columnLabel) throws SQLException {
-        return new byte[0];
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public Date getDate(String columnLabel) throws SQLException {
-        return null;
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public Time getTime(String columnLabel) throws SQLException {
-        return null;
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public Timestamp getTimestamp(String columnLabel) throws SQLException {
-        return null;
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public InputStream getAsciiStream(String columnLabel) throws SQLException {
-        return null;
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public InputStream getUnicodeStream(String columnLabel) throws SQLException {
-        return null;
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public InputStream getBinaryStream(String columnLabel) throws SQLException {
-        return null;
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
@@ -264,7 +284,7 @@ public class LibSqlResultSet implements ResultSet {
 
     @Override
     public void clearWarnings() throws SQLException {
-
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
