@@ -295,12 +295,14 @@ public class LibSqlResultSet implements ResultSet {
 
     @Override
     public Object getObject(int columnIndex) throws SQLException {
-        return null;
+        Cell cell = getCell(columnIndex);
+        return cell.getValue();
     }
 
     @Override
     public Object getObject(String columnLabel) throws SQLException {
-        return null;
+        Cell cell = getCell(columnLabel);
+        return cell.getValue();
     }
 
     @Override

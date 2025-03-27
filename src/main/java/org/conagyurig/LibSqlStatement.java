@@ -4,6 +4,7 @@ import org.conagyurig.protocol.response.*;
 
 import java.sql.*;
 import java.util.List;
+import java.util.Optional;
 
 public class LibSqlStatement implements Statement {
     private Connection connection;
@@ -24,26 +25,51 @@ public class LibSqlStatement implements Statement {
     @Override
     public boolean execute(String sql) throws SQLException {
         Response response = client.executeQuery(sql);
+        return handleResponse(response);
+    }
+
+    protected boolean handleResponse(Response response) throws SQLException {
+        validateNoErrors(response);
+        this.currentResults = extractExecuteResults(response);
+        this.currentResultIndex = 0;
+
+        Optional<ResultItem> queryResult = findFirstResultSet(currentResults);
+        if (queryResult.isPresent()) {
+            this.resultSet = new LibSqlResultSet(queryResult.get().getResponse().getResult());
+            return true;
+        }
+
+        Optional<Result> updateResult = findLastUpdateResult(currentResults);
+        updateResult.ifPresent(r -> {
+            this.updateCount = r.getAffected_row_count();
+            if (r.getLast_insert_rowid() != null) {
+                System.out.println("found id correctly!!");
+                System.out.println(r.getLast_insert_rowid());
+                this.last_insert_rowid = Integer.parseInt(r.getLast_insert_rowid());
+            }
+        });
+
+        return false;
+    }
+
+    private void validateNoErrors(Response response) throws SQLException {
         List<String> errors = getErrors(response);
         if (!errors.isEmpty()) {
             throw new SQLException("Query failed: " + String.join("; ", errors));
         }
-        List<ResultItem> results = extractExecuteResults(response);
-        this.currentResults = results;
-        this.currentResultIndex = 0;
-
-        if (hasResultSet(results.getFirst())) {
-            this.resultSet = new LibSqlResultSet(results.getFirst().getResponse().getResult());
-            return true;
-        } else {
-            Result result = results.getFirst().getResponse().getResult();
-            this.updateCount = result.getAffected_row_count();
-            if (result.getLast_insert_rowid() != null) {
-                this.last_insert_rowid = Integer.parseInt(result.getLast_insert_rowid());
-            }
-            return false;
-        }
     }
+
+    private Optional<ResultItem> findFirstResultSet(List<ResultItem> results) {
+        return results.stream().filter(this::hasResultSet).findFirst();
+    }
+
+    private Optional<Result> findLastUpdateResult(List<ResultItem> results) {
+        return results.stream()
+                .map(r -> r.getResponse().getResult())
+                .filter(r -> r.getAffected_row_count() != null)
+                .reduce((first, second) -> second);
+    }
+
 
     @Override
     public ResultSet executeQuery(String sql) throws SQLException {
@@ -221,9 +247,10 @@ public class LibSqlStatement implements Statement {
 
     @Override
     public ResultSet getGeneratedKeys() throws SQLException {
-        if (!generatedKeysRequested || last_insert_rowid == null) {
+        if (last_insert_rowid == null) {
             return new LibSqlResultSet(new Result(List.of(), List.of()));
         }
+
         Column cols = new Column("GENERATED_KEY", "integer");
         Cell cell = new Cell("integer", String.valueOf(last_insert_rowid));
         Result result = new Result(List.of(cols), List.of(List.of(cell)));

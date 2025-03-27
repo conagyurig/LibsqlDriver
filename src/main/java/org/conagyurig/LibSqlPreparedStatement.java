@@ -1,8 +1,6 @@
 package org.conagyurig;
 
 import org.conagyurig.protocol.response.Response;
-import org.conagyurig.protocol.response.Result;
-import org.conagyurig.protocol.response.ResultItem;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -18,6 +16,7 @@ public class LibSqlPreparedStatement extends LibSqlStatement implements Prepared
 
     private String sql;
     private Map<Integer, Object> parameters;
+    private boolean returnGeneratedKeys = false;
 
     public LibSqlPreparedStatement(LibSqlConnection connection, LibSqlClient client, String sql) {
         super(connection, client);
@@ -28,25 +27,7 @@ public class LibSqlPreparedStatement extends LibSqlStatement implements Prepared
     @Override
     public boolean execute() throws SQLException {
         Response response = this.client.executeQueryWithArgs(sql, getOrderedParams());
-        List<String> errors = getErrors(response);
-        if (!errors.isEmpty()) {
-            throw new SQLException("Query failed: " + String.join("; ", errors));
-        }
-        List<ResultItem> results = extractExecuteResults(response);
-        this.currentResults = results;
-        this.currentResultIndex = 0;
-
-        if (hasResultSet(results.getFirst())) {
-            this.resultSet = new LibSqlResultSet(results.getFirst().getResponse().getResult());
-            return true;
-        } else {
-            Result result = results.getFirst().getResponse().getResult();
-            this.updateCount = result.getAffected_row_count();
-            if (result.getLast_insert_rowid() != null) {
-                this.last_insert_rowid = Integer.parseInt(result.getLast_insert_rowid());
-            }
-            return false;
-        }
+        return handleResponse(response);
     }
 
     @Override
@@ -66,6 +47,10 @@ public class LibSqlPreparedStatement extends LibSqlStatement implements Prepared
                 .sorted(Map.Entry.comparingByKey())
                 .map(Map.Entry::getValue)
                 .toList();
+    }
+
+    public void setReturnGeneratedKeys(boolean flag) {
+        this.returnGeneratedKeys = flag;
     }
 
     @Override
