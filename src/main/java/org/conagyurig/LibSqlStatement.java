@@ -43,8 +43,6 @@ public class LibSqlStatement implements Statement {
         updateResult.ifPresent(r -> {
             this.updateCount = r.getAffected_row_count();
             if (r.getLast_insert_rowid() != null) {
-                System.out.println("found id correctly!!");
-                System.out.println(r.getLast_insert_rowid());
                 this.last_insert_rowid = Integer.parseInt(r.getLast_insert_rowid());
             }
         });

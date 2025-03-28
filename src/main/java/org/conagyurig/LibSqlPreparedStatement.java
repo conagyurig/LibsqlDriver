@@ -145,12 +145,12 @@ public class LibSqlPreparedStatement extends LibSqlStatement implements Prepared
 
     @Override
     public void setObject(int parameterIndex, Object x, int targetSqlType) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        parameters.put(parameterIndex, x);
     }
 
     @Override
     public void setObject(int parameterIndex, Object x) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        parameters.put(parameterIndex, x);
     }
 
     @Override
