@@ -295,30 +295,27 @@ public class LibSqlResultSet implements ResultSet {
     @Override
     public Object getObject(int columnIndex) throws SQLException {
         Cell cell = getCell(columnIndex);
-        wasNull = (cell == null || cell.getValue() == null);
-
-        if (wasNull) return null;
-
-        return switch (cell.getType()) {
-            case "integer" -> Integer.parseInt(cell.getValue());
-            case "float" -> Double.parseDouble(cell.getValue());
-            case "text" -> cell.getValue();
-            case "null" -> null;
-            default -> throw new SQLException("Unsupported column type: " + cell.getType());
-        };
+        return getObject(cell);
     }
 
     @Override
     public Object getObject(String columnLabel) throws SQLException {
         Cell cell = getCell(columnLabel);
+        return getObject(cell);
+    }
+
+    private Object getObject(Cell cell) throws SQLException {
         wasNull = (cell == null || cell.getValue() == null);
 
         if (wasNull) return null;
 
         return switch (cell.getType()) {
-            case "integer" -> Integer.parseInt(cell.getValue());
-            case "float" -> Double.parseDouble(cell.getValue());
+            case "integer" ->extractValue(cell, Integer::parseInt, "integer");
+            case "float" -> extractValue(cell, Float::parseFloat, "float");
             case "text" -> cell.getValue();
+            case "long" -> extractValue(cell, Long::parseLong, "long");
+            case "short" -> extractValue(cell, Short::parseShort, "short");
+            case "double" -> extractValue(cell, Double::parseDouble, "double");
             case "null" -> null;
             default -> throw new SQLException("Unsupported column type: " + cell.getType());
         };

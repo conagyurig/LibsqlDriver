@@ -249,8 +249,8 @@ public class LibSqlStatement implements Statement {
             return new LibSqlResultSet(new Result(List.of(), List.of()));
         }
 
-        Column cols = new Column("GENERATED_KEY", "integer");
-        Cell cell = new Cell("integer", String.valueOf(last_insert_rowid));
+        Column cols = new Column("GENERATED_KEY", "long");
+        Cell cell = new Cell("long", String.valueOf(last_insert_rowid));
         Result result = new Result(List.of(cols), List.of(List.of(cell)));
 
         return new LibSqlResultSet(result);
