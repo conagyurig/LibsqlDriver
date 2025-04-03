@@ -30,4 +30,8 @@ public class RequestBatch {
     public void addRequest(Request request) {
         this.requests.add(request);
     }
+
+    public void addRequests(List<Request> requests) {
+        this.requests.addAll(requests);
+    }
 }

@@ -1,7 +1,6 @@
 package org.conagyurig.protocol.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ResultItem {

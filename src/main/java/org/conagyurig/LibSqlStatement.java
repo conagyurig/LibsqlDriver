@@ -3,6 +3,7 @@ package org.conagyurig;
 import org.conagyurig.protocol.response.*;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,6 +17,7 @@ public class LibSqlStatement implements Statement {
     protected Integer last_insert_rowid;
     private boolean generatedKeysRequested = false;
     private boolean closed = false;
+    private List<String> batch = new ArrayList<>();
 
     public LibSqlStatement(LibSqlConnection connection, LibSqlClient client) {
         this.client = client;
@@ -220,17 +222,25 @@ public class LibSqlStatement implements Statement {
 
     @Override
     public void addBatch(String sql) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        batch.add(sql);
     }
 
     @Override
     public void clearBatch() throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        batch.clear();
     }
 
     @Override
     public int[] executeBatch() throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        Response response = client.executeBatch(batch);
+        List<ResultItem> results = response.getResults();
+        List<Integer> filteredResults = results
+                .stream()
+                .map(ResultItem::getResponse)
+                .filter(resultItemResponse -> resultItemResponse.getType().equals("execute"))
+                .map(resultResponse -> resultResponse.getResult().getAffected_row_count())
+                .toList();
+        return filteredResults.stream().mapToInt(Integer::intValue).toArray();
     }
 
     @Override

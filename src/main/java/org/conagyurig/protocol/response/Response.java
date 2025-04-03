@@ -8,6 +8,7 @@ import java.util.List;
 public class Response {
     private List<ResultItem> results;
     private String baton;
+
     public List<ResultItem> getResults() {
         return results;
     }

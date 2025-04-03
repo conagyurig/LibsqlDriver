@@ -13,6 +13,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -42,23 +43,30 @@ public class LibSqlClient {
     }
 
     public Response executeQuery(String query) {
-        return sendRequest(new Request("execute", new Statement(query)));
+        return sendRequest(buildRequestBatch(List.of(new Request("execute", new Statement(query)))));
+    }
+
+    public Response executeBatch(List<String> batch) {
+        List<Request> requests = new ArrayList<>();
+        for (String sql : batch) {
+            requests.add(new Request("execute", new Statement(sql)));
+        }
+        return sendRequest(buildRequestBatch(requests));
     }
 
     public Response executeQueryWithArgs(String query, List<Object> args) {
         List<Argument> arguments = args.stream().map(ArgumentMapper::convertJavaObjToArgument).toList();
-        return sendRequest(new Request("execute", Statement.withArgs(query, arguments)));
+        return sendRequest(buildRequestBatch(List.of(new Request("execute", Statement.withArgs(query, arguments)))));
     }
 
     public Response executeQueryWithNamedArgs(String query, Map<String, Object> args) {
         List<NamedArgument> arguments = args.entrySet().stream()
                 .map((entry) -> new NamedArgument(entry.getKey(), ArgumentMapper.convertJavaObjToArgument(entry.getValue())))
                 .toList();
-        return sendRequest(new Request("execute", Statement.withNamedArgs(query, arguments)));
+        return sendRequest(buildRequestBatch(List.of(new Request("execute", Statement.withNamedArgs(query, arguments)))));
     }
 
-    private Response sendRequest(Request request) {
-        RequestBatch requestBatch = buildRequestBatch(request);
+    private Response sendRequest(RequestBatch requestBatch) {
         try {
             String jsonPayload = objectWriter.writeValueAsString(requestBatch);
             System.out.println(jsonPayload);
@@ -93,15 +101,15 @@ public class LibSqlClient {
         }
     }
 
-    private RequestBatch buildRequestBatch(Request request) {
+    private RequestBatch buildRequestBatch(List<Request> requests) {
         RequestBatch requestBatch = new RequestBatch();
         if (transactionState.isInTransaction() && transactionState.getBaton() == null) {
             Request beginTransaction = new Request("execute", new Statement("BEGIN"));
             requestBatch.addRequest(beginTransaction);
-        } else if(transactionState.isInTransaction() && transactionState.getBaton() != null) {
+        } else if (transactionState.isInTransaction() && transactionState.getBaton() != null) {
             requestBatch.setBaton(transactionState.getBaton());
         }
-        requestBatch.addRequest(request);
+        requestBatch.addRequests(requests);
         if (!transactionState.isInTransaction()) {
             requestBatch.addRequest(new Request("close"));
         }
