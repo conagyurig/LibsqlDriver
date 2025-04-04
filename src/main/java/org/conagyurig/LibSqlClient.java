@@ -54,6 +54,15 @@ public class LibSqlClient {
         return sendRequest(buildRequestBatch(requests));
     }
 
+    public Response executePreparedBatch(List<List<Object>> batch, String sql) {
+        List<Request> requests = new ArrayList<>();
+        for (List<Object> args : batch) {
+            List<Argument> arguments = args.stream().map(ArgumentMapper::convertJavaObjToArgument).toList();
+            requests.add(new Request("execute", Statement.withArgs(sql, arguments)));
+        }
+        return sendRequest(buildRequestBatch(requests));
+    }
+
     public Response executeQueryWithArgs(String query, List<Object> args) {
         List<Argument> arguments = args.stream().map(ArgumentMapper::convertJavaObjToArgument).toList();
         return sendRequest(buildRequestBatch(List.of(new Request("execute", Statement.withArgs(query, arguments)))));

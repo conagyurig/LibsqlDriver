@@ -1,22 +1,22 @@
 package org.conagyurig;
 
 import org.conagyurig.protocol.response.Response;
+import org.conagyurig.protocol.response.ResultItem;
 
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.*;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.Date;
+import java.util.*;
 
 public class LibSqlPreparedStatement extends LibSqlStatement implements PreparedStatement {
 
-    private String sql;
+    private final String sql;
     private Map<Integer, Object> parameters;
     private boolean returnGeneratedKeys = false;
+    private final List<List<Object>> batch = new ArrayList<>();
 
     public LibSqlPreparedStatement(LibSqlConnection connection, LibSqlClient client, String sql) {
         super(connection, client);
@@ -155,7 +155,28 @@ public class LibSqlPreparedStatement extends LibSqlStatement implements Prepared
 
     @Override
     public void addBatch() throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        batch.add(new ArrayList<>(getOrderedParams()));
+    }
+
+    @Override
+    public void clearBatch() throws SQLException {
+        batch.clear();
+    }
+
+    @Override
+    public int[] executeBatch() throws SQLException {
+        Response response = client.executePreparedBatch(batch, sql);
+        List<ResultItem> results = response.getResults();
+        List<Integer> filteredResults = results
+                .stream()
+                .map(ResultItem::getResponse)
+                .filter(resultItemResponse -> resultItemResponse.getType().equals("execute"))
+                .map(resultResponse -> {
+                    Integer count = resultResponse.getResult().getAffected_row_count();
+                    return count != null ? count : Statement.SUCCESS_NO_INFO;
+                })
+                .toList();
+        return filteredResults.stream().mapToInt(Integer::intValue).toArray();
     }
 
     @Override

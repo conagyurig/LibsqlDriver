@@ -17,7 +17,7 @@ public class LibSqlStatement implements Statement {
     protected Integer last_insert_rowid;
     private boolean generatedKeysRequested = false;
     private boolean closed = false;
-    private List<String> batch = new ArrayList<>();
+    private final List<String> batch = new ArrayList<>();
 
     public LibSqlStatement(LibSqlConnection connection, LibSqlClient client) {
         this.client = client;
@@ -67,7 +67,7 @@ public class LibSqlStatement implements Statement {
         return results.stream()
                 .map(r -> r.getResponse().getResult())
                 .filter(r -> r.getAffected_row_count() != null)
-                .reduce((first, second) -> second);
+                .reduce((_, second) -> second);
     }
 
 
@@ -238,7 +238,10 @@ public class LibSqlStatement implements Statement {
                 .stream()
                 .map(ResultItem::getResponse)
                 .filter(resultItemResponse -> resultItemResponse.getType().equals("execute"))
-                .map(resultResponse -> resultResponse.getResult().getAffected_row_count())
+                .map(resultResponse -> {
+                    Integer count = resultResponse.getResult().getAffected_row_count();
+                    return count != null ? count : Statement.SUCCESS_NO_INFO;
+                })
                 .toList();
         return filteredResults.stream().mapToInt(Integer::intValue).toArray();
     }
