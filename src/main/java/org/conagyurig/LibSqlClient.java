@@ -94,7 +94,7 @@ public class LibSqlClient {
 
             HttpRequest httpRequest = requestBuilder.build();
             HttpResponse<String> response = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            logger.debug("Response received: {}", response);
+            logger.debug("Response received: {}", response.body());
             if (response.statusCode() == 200 && response.body() != null) {
                 try {
                     Response mappedResponse = objectMapper.readValue(response.body(), Response.class);
