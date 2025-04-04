@@ -1,6 +1,6 @@
 # Turso JDBC Driver
 
-[![License](https://img.shields.io/github/license/conagurig/turso-jdbc.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License](https://img.shields.io/github/license/conagyurig/LibsqlDriver.svg)](https://opensource.org/licenses/Apache-2.0)
 
 A modern, lightweight JDBC driver for [Turso](https://turso.tech) — built from the ground up to support **Spring Data JDBC**, with full support for **prepared statements**, **transactions**, and **batched operations**.
 
