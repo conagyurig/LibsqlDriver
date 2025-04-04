@@ -2,6 +2,8 @@ package org.conagyurig;
 
 import org.conagyurig.protocol.response.Response;
 import org.conagyurig.protocol.response.ResultItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -17,6 +19,7 @@ public class LibSqlPreparedStatement extends LibSqlStatement implements Prepared
     private Map<Integer, Object> parameters;
     private boolean returnGeneratedKeys = false;
     private final List<List<Object>> batch = new ArrayList<>();
+    private static final Logger logger = LoggerFactory.getLogger(LibSqlPreparedStatement.class);
 
     public LibSqlPreparedStatement(LibSqlConnection connection, LibSqlClient client, String sql) {
         super(connection, client);
@@ -27,6 +30,7 @@ public class LibSqlPreparedStatement extends LibSqlStatement implements Prepared
     @Override
     public boolean execute() throws SQLException {
         Response response = this.client.executeQueryWithArgs(sql, getOrderedParams());
+        logger.info("Executed query: {}", sql);
         return handleResponse(response);
     }
 
@@ -166,6 +170,7 @@ public class LibSqlPreparedStatement extends LibSqlStatement implements Prepared
     @Override
     public int[] executeBatch() throws SQLException {
         Response response = client.executePreparedBatch(batch, sql);
+        logger.info("Executed batch: {}", sql);
         List<ResultItem> results = response.getResults();
         List<Integer> filteredResults = results
                 .stream()

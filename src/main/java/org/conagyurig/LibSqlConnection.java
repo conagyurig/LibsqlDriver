@@ -4,6 +4,8 @@ import java.sql.*;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LibSqlConnection implements Connection {
     private final LibSqlClient client;
@@ -12,11 +14,14 @@ public class LibSqlConnection implements Connection {
     private final TransactionState transactionState;
     private int transactionIsolation = Connection.TRANSACTION_READ_COMMITTED;
     private boolean readOnly = false;
+    private static final Logger logger = LoggerFactory.getLogger(LibSqlConnection.class);
+
 
     public LibSqlConnection(String dbPath, Properties info) {
         String token = info.getProperty("password");
         this.transactionState = new TransactionState();
         this.client = new LibSqlClient(dbPath, token, transactionState);
+        logger.info("Connected to database: {}", dbPath);
     }
 
     @Override
@@ -64,6 +69,7 @@ public class LibSqlConnection implements Connection {
         }
         //technically the session will be left hanging in this instance, need to call close()
         client.executeQuery("COMMIT");
+        logger.info("Transaction committed");
         transactionState.setBaton(null);
     }
 
@@ -73,6 +79,7 @@ public class LibSqlConnection implements Connection {
             throw new SQLException("Cannot call rollback() in auto-commit mode");
         }
         client.executeQuery("ROLLBACK");
+        logger.info("Transaction rolled back");
         transactionState.setBaton(null);
     }
 

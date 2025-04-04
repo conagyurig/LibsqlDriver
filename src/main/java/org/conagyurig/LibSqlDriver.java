@@ -44,7 +44,7 @@ public class LibSqlDriver implements Driver {
 
     @Override
     public int getMajorVersion() {
-        return 0;
+        return 1;
     }
 
     @Override

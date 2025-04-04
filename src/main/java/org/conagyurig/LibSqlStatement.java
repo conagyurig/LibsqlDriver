@@ -1,6 +1,8 @@
 package org.conagyurig;
 
 import org.conagyurig.protocol.response.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -18,6 +20,8 @@ public class LibSqlStatement implements Statement {
     private boolean generatedKeysRequested = false;
     private boolean closed = false;
     private final List<String> batch = new ArrayList<>();
+    private static final Logger logger = LoggerFactory.getLogger(LibSqlStatement.class);
+
 
     public LibSqlStatement(LibSqlConnection connection, LibSqlClient client) {
         this.client = client;
@@ -26,6 +30,7 @@ public class LibSqlStatement implements Statement {
 
     @Override
     public boolean execute(String sql) throws SQLException {
+        logger.info("Executing query: {}", sql);
         Response response = client.executeQuery(sql);
         return handleResponse(response);
     }
@@ -233,6 +238,7 @@ public class LibSqlStatement implements Statement {
     @Override
     public int[] executeBatch() throws SQLException {
         Response response = client.executeBatch(batch);
+        logger.info("Executed batch: {}", batch);
         List<ResultItem> results = response.getResults();
         List<Integer> filteredResults = results
                 .stream()

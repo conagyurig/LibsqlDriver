@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.conagyurig.protocol.request.*;
 import org.conagyurig.protocol.response.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
@@ -28,6 +30,7 @@ public class LibSqlClient {
     private final ObjectMapper objectMapper;
     private final ObjectWriter objectWriter;
     private final TransactionState transactionState;
+    private static final Logger logger = LoggerFactory.getLogger(LibSqlClient.class);
 
     public LibSqlClient(String url, String authToken, TransactionState transactionState) {
         this.uri = URI.create("https://" + url + TURSO_PREFIX);
@@ -78,7 +81,7 @@ public class LibSqlClient {
     private Response sendRequest(RequestBatch requestBatch) {
         try {
             String jsonPayload = objectWriter.writeValueAsString(requestBatch);
-            System.out.println(jsonPayload);
+            logger.debug("Request sent: {}", jsonPayload);
             HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                     .uri(uri)
                     .header("Content-Type", "application/json")
@@ -91,7 +94,7 @@ public class LibSqlClient {
 
             HttpRequest httpRequest = requestBuilder.build();
             HttpResponse<String> response = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            System.out.println(response.body());
+            logger.debug("Response received: {}", response);
             if (response.statusCode() == 200 && response.body() != null) {
                 try {
                     Response mappedResponse = objectMapper.readValue(response.body(), Response.class);
