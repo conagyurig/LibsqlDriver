@@ -68,5 +68,25 @@ public class BasicCRUDPreparedStatementTest extends IntegrationTestBase {
             assertFalse(rs.next());
         }
     }
+
+    @Test
+    public void testReUsingPreparedStatement() throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement("INSERT INTO test_table (name) VALUES (?)")) {
+            ps.setString(1, "testName");
+            ps.executeUpdate();
+            ps.setString(1,"newTestName");
+            ps.executeUpdate();
+        }
+
+        try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM test_table")) {
+            ResultSet rs = ps.executeQuery();
+
+            assertTrue(rs.next());
+            assertEquals("testName", rs.getString(2));
+            assertTrue(rs.next());
+            assertEquals("newTestName", rs.getString(2));
+            assertFalse(rs.next());
+        }
+    }
 }
 

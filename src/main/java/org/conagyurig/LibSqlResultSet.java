@@ -9,6 +9,8 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -57,14 +59,8 @@ public class LibSqlResultSet implements ResultSet {
     }
 
     private Cell getCell(String columnName) throws SQLException {
-        if (cursor < 0 || cursor >= rows.size()) {
-            throw new SQLException("Invalid cursor position. Call next() first.");
-        }
         Integer columnIndex = columnIndexByName.get(columnName);
-        if (columnIndex == null || columnIndex < 1 || columnIndex > cols.size()) {
-            throw new SQLException("Invalid column index: " + columnIndex);
-        }
-        return rows.get(cursor).get(columnIndex - 1);
+        return getCell(columnIndex);
     }
 
     @Override
@@ -153,18 +149,26 @@ public class LibSqlResultSet implements ResultSet {
     }
 
     @Override
-    public Date getDate(int columnIndex) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
-    }
-
-    @Override
     public Time getTime(int columnIndex) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
     @Override
+    public Date getDate(int columnIndex) throws SQLException {
+        Cell cell = getCell(columnIndex);
+        return extractValue(cell, val -> Date.valueOf(LocalDate.parse(val)), "date");
+    }
+
+    @Override
     public Timestamp getTimestamp(int columnIndex) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        Cell cell = getCell(columnIndex);
+        return extractValue(cell, val -> Timestamp.valueOf(LocalDateTime.parse(val)), "timestamp");
+    }
+
+    @Override
+    public BigDecimal getBigDecimal(int columnIndex) throws SQLException {
+        Cell cell = getCell(columnIndex);
+        return extractValue(cell, BigDecimal::new, "BigDecimal");
     }
 
     @Override
@@ -312,12 +316,11 @@ public class LibSqlResultSet implements ResultSet {
         return switch (cell.getType()) {
             case "integer" ->extractValue(cell, Integer::parseInt, "integer");
             case "float" -> extractValue(cell, Float::parseFloat, "float");
-            case "text" -> cell.getValue();
             case "long" -> extractValue(cell, Long::parseLong, "long");
             case "short" -> extractValue(cell, Short::parseShort, "short");
             case "double" -> extractValue(cell, Double::parseDouble, "double");
             case "null" -> null;
-            default -> throw new SQLException("Unsupported column type: " + cell.getType());
+            default -> cell.getValue();
         };
     }
 
@@ -333,11 +336,6 @@ public class LibSqlResultSet implements ResultSet {
 
     @Override
     public Reader getCharacterStream(String columnLabel) throws SQLException {
-        return null;
-    }
-
-    @Override
-    public BigDecimal getBigDecimal(int columnIndex) throws SQLException {
         return null;
     }
 

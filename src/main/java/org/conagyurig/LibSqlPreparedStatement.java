@@ -1,7 +1,6 @@
 package org.conagyurig;
 
 import org.conagyurig.protocol.response.Response;
-import org.conagyurig.protocol.response.ResultItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -171,17 +170,7 @@ public class LibSqlPreparedStatement extends LibSqlStatement implements Prepared
     public int[] executeBatch() throws SQLException {
         Response response = client.executePreparedBatch(batch, sql);
         logger.info("Executed batch: {}", sql);
-        List<ResultItem> results = response.getResults();
-        List<Integer> filteredResults = results
-                .stream()
-                .map(ResultItem::getResponse)
-                .filter(resultItemResponse -> resultItemResponse.getType().equals("execute"))
-                .map(resultResponse -> {
-                    Integer count = resultResponse.getResult().getAffected_row_count();
-                    return count != null ? count : Statement.SUCCESS_NO_INFO;
-                })
-                .toList();
-        return filteredResults.stream().mapToInt(Integer::intValue).toArray();
+        return handleBatchResults(response);
     }
 
     @Override

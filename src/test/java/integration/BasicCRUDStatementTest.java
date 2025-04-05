@@ -71,5 +71,23 @@ public class BasicCRUDStatementTest extends IntegrationTestBase {
             assertFalse(rs.next());
         }
     }
+
+    @Test
+    public void testInvalidInsertThrowsError() throws SQLException {
+        try (Statement statement = conn.createStatement()) {
+            statement.execute("INSERT INTO test_table (name) VALUES (null)");
+        } catch (SQLException e) {
+            assertTrue(e.getMessage().contains("NOT NULL constraint failed"));
+        }
+    }
+
+    @Test
+    public void testInvalidSQLThrowsError() throws SQLException {
+        try (Statement statement = conn.createStatement()) {
+            statement.execute("INSERT TO test_table (name) VALUES (null)");
+        } catch (SQLException e) {
+            assertTrue(e.getMessage().contains("SQL string could not be parsed"));
+        }
+    }
 }
 

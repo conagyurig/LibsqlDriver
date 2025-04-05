@@ -239,6 +239,10 @@ public class LibSqlStatement implements Statement {
     public int[] executeBatch() throws SQLException {
         Response response = client.executeBatch(batch);
         logger.info("Executed batch: {}", batch);
+        return handleBatchResults(response);
+    }
+
+    protected int[] handleBatchResults(Response response) {
         List<ResultItem> results = response.getResults();
         List<Integer> filteredResults = results
                 .stream()

@@ -21,7 +21,7 @@ public abstract class IntegrationTestBase {
 
         try (Statement stmt = conn.createStatement()) {
             stmt.execute("DROP TABLE IF EXISTS test_table");
-            stmt.execute("CREATE TABLE test_table (id INTEGER PRIMARY KEY, name TEXT)");
+            stmt.execute("CREATE TABLE test_table (id INTEGER PRIMARY KEY, name TEXT NOT NULL)");
         }
     }
 
