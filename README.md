@@ -55,7 +55,7 @@ Use @Transactional for automatic rollback
 
 Auto-generate schema-based inserts/updates
 
-📎 Demo project here: Spring Boot Demo with Turso JDBC
+📎 [Demo project here: Spring Boot Demo with Turso JDBC](https://github.com/conagyurig/tursoDemo)
 
 ## Example usage:
 ```java
